@@ -71,7 +71,7 @@ type GoNeoWSResponse struct {
 }
 
 // composeRequest() serves to create the query to be sent to the API endpoint
-func (gs *GoNeoWS) composeRequest() {
+func (gs *GoNeoWS) composeRequest(debug bool) {
 
 	//create request to be sent to endpoint
 	req, err := http.NewRequest("GET", URL, nil)
@@ -86,7 +86,10 @@ func (gs *GoNeoWS) composeRequest() {
 	if gs.APIKey != "" {
 		query.Add("api_key", gs.APIKey)
 	} else {
-		log.Println("[Informative] APIKey not set using DEMO_KEY")
+		if debug {
+			log.Println("[Informative] APIKey not set using DEMO_KEY")
+		}
+
 		query.Add("api_key", "DEMO_KEY")
 	}
 
@@ -102,10 +105,12 @@ func (gs *GoNeoWS) composeRequest() {
 	// verify EndDate
 	_, err = time.Parse("2006-01-02", gs.EndDate)
 	if err != nil {
+		if debug {
+			// A Failure of parsing the EndDate is not a problem since by default the EndDate is set to 7 days from the StartDate
+			log.Println("[Informative] Error when parsing EndDate", err)
+			log.Println("[Informative] EndDate has not been set so this will default to 7 days from the Start date")
+		}
 
-		// A Failure of parsing the EndDate is not a problem since by default the EndDate is set to 7 days from the StartDate
-		log.Println("[Informative] Error when parsing EndDate", err)
-		log.Println("[Informative] EndDate has not been set so this will default to 7 days from the Start date")
 	} else {
 		query.Add("end_date", gs.EndDate)
 	}
@@ -120,7 +125,7 @@ func (gs *GoNeoWS) composeRequest() {
 
 func (gs *GoNeoWS) MakeRequest(debug bool) {
 	// compose request to the NeoWS endpoint
-	gs.composeRequest()
+	gs.composeRequest(debug)
 
 	if debug {
 		log.Println("[Informative] Making request to", gs.Query)
